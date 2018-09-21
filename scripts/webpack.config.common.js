@@ -39,7 +39,7 @@ function moduleConfig (styleLoader) {
           loader: 'babel-loader'
         }
       }, {
-        test: /\.less$/,
+        test: /\.less|css$/,
         use: [
           styleLoader,
           'css-loader',

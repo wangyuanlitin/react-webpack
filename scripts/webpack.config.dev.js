@@ -12,8 +12,9 @@ Object.assign(config, {
   devServer: {
     contentBase: path.join(__dirname, '../dist'),
     compress: true,
-    port: 3000,
-    open: true
+    host: process.env.HOST || 'localhost',
+    port: process.env.PORT || 3000,
+    open: 'Google Chrome'
   }
 })
 

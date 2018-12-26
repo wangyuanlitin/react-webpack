@@ -1,21 +1,70 @@
 const path = require('path')
+const webpack = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 
-const WebpackConfig = require('./webpack.config.common')
+const appSrc = path.resolve(__dirname, '../src')
+const publicPath = path.resolve(__dirname, '../public')
+const build = path.resolve(__dirname, '../build')
 
-let config = Object.assign({}, WebpackConfig.baseConfig)
-
-Object.assign(config, {
+module.exports = {
   mode: 'development',
-  devtool: 'source-map',
-  module: WebpackConfig.moduleConfig('style-loader'),
-  plugins: WebpackConfig.pluginConfig,
+  entry: ['babel-polyfill', path.resolve(appSrc, 'index.js')],
+  output: {
+    path: build,
+    filename: 'acat/static/js/[name].[hash:8].js',
+    chunkFilename: 'acat/static/js/[name].[chunkhash:8].chunk.js'
+  },
+  resolve: {
+    alias: {
+      Src: appSrc,
+      Util: path.resolve(appSrc, 'util/'),
+      Component: path.resolve(appSrc, 'components/'),
+      Less: path.resolve(appSrc, 'less/')
+    }
+  },
+  module: {
+    rules: [
+      {
+        enforce: 'pre',
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'eslint-loader'
+      }, {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: 'babel-loader'
+      }, {
+        test: /\.less$/,
+        use: [
+          { loader: 'style-loader' },
+          { loader: 'css-loader' },
+          { loader: 'less-loader' }
+        ]
+      }
+    ]
+  },
+  devtool: 'inline-cheap-module-source-map',
   devServer: {
-    contentBase: path.join(__dirname, '../dist'),
-    compress: true,
-    host: process.env.HOST || 'localhost',
-    port: process.env.PORT || 3000,
+    contentBase: publicPath, // 提供静态文件
+    host: 'localhost',
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: '',
+        changeOrigin: true,
+        pathRewrite: { '': '' }
+      }
+    },
+    hot: true,
     open: 'Google Chrome'
-  }
-})
-
-module.exports = config
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      inject: true,
+      template: path.resolve(publicPath, 'index.html')
+    }),
+    new webpack.HotModuleReplacementPlugin(),
+    new ProgressBarPlugin()
+  ]
+}
